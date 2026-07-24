@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Writing Feedback+ — Usage &amp; Quality (Demo)</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      line-height: 1.5;
+    }
+
+    .demo-banner {
+      background: #fff8e6;
+      border-bottom: 1px solid #f0d78c;
+      color: #7a5c00;
+      padding: 0.6rem 1.5rem;
+      font-size: 0.875rem;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    header h1 {
+      margin: 0 0 0.25rem;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    header p {
+      margin: 0 0 1.25rem;
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .filters {
+      background: #fff;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: flex-end;
+      margin-bottom: 1.25rem;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      min-width: 140px;
+      flex: 1;
+    }
+
+    .filter-group label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #888;
+    }
+
+    .filter-group select {
+      padding: 0.45rem 0.6rem;
+      border: 1px solid #d0d5dd;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      background: #fff;
+    }
+
+    .filter-meta {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: #666;
+      padding-top: 0.25rem;
+      border-top: 1px solid #eee;
+    }
+
+    .reset-link {
+      color: #0d9488;
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .reset-link:hover { text-decoration: underline; }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .kpi-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 1.1rem 1.25rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .kpi-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #888;
+      margin-bottom: 0.35rem;
+    }
+
+    .kpi-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #0d9488;
+    }
+
+    .kpi-sub {
+      font-size: 0.8rem;
+      color: #999;
+      margin-top: 0.15rem;
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .chart-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .chart-card h2 {
+      margin: 0 0 0.75rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 240px;
+    }
+
+    .table-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      overflow-x: auto;
+    }
+
+    .table-card h2 {
+      margin: 0 0 0.75rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    th, td {
+      padding: 0.55rem 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #888;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    th:hover { color: #0d9488; }
+
+    th .sort-arrow {
+      margin-left: 0.25rem;
+      opacity: 0.4;
+    }
+
+    th.sorted .sort-arrow { opacity: 1; color: #0d9488; }
+
+    tbody tr:hover { background: #fafafa; }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .status-reviewed { background: #d1fae5; color: #065f46; }
+    .status-submitted { background: #dbeafe; color: #1e40af; }
+    .status-cancelled { background: #fee2e2; color: #991b1b; }
+
+    @media (max-width: 900px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .charts-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 520px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+      .filter-group { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-banner">Sample dashboard — dummy WF+ data for illustration only</div>
+
+  <div class="container">
+    <header>
+      <h1>Writing Feedback+ — Usage &amp; Quality (Demo)</h1>
+      <p>Last 7 days of Writing Feedback+ submissions</p>
+    </header>
+
+    <section class="filters" aria-label="Filters">
+      <div class="filter-group">
+        <label for="filter-date-from">From</label>
+        <select id="filter-date-from"></select>
+      </div>
+      <div class="filter-group">
+        <label for="filter-date-to">To</label>
+        <select id="filter-date-to"></select>
+      </div>
+      <div class="filter-group">
+        <label for="filter-campus">Campus</label>
+        <select id="filter-campus"><option value="">All campuses</option></select>
+      </div>
+      <div class="filter-group">
+        <label for="filter-faculty">Faculty</label>
+        <select id="filter-faculty"><option value="">All faculties</option></select>
+      </div>
+      <div class="filter-group">
+        <label for="filter-subject">Subject</label>
+        <select id="filter-subject"><option value="">All subjects</option></select>
+      </div>
+      <div class="filter-meta">
+        <span id="filter-count">Showing 0 of 0 submissions</span>
+        <a class="reset-link" id="reset-filters" href="#">Reset filters</a>
+      </div>
+    </section>
+
+    <section class="kpi-grid" aria-label="Key metrics">
+      <div class="kpi-card">
+        <div class="kpi-label">Total submissions</div>
+        <div class="kpi-value" id="kpi-total">—</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Avg student rating</div>
+        <div class="kpi-value" id="kpi-rating">—</div>
+        <div class="kpi-sub" id="kpi-rating-sub"></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Avg word count</div>
+        <div class="kpi-value" id="kpi-words">—</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Avg writing quality</div>
+        <div class="kpi-value" id="kpi-quality">—</div>
+        <div class="kpi-sub">Out of 5.0</div>
+      </div>
+    </section>
+
+    <section class="charts-grid" aria-label="Charts">
+      <div class="chart-card">
+        <h2>Submissions over time</h2>
+        <div class="chart-wrap"><canvas id="chart-time"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h2>Writing quality by dimension</h2>
+        <div class="chart-wrap"><canvas id="chart-quality"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h2>Submissions by faculty</h2>
+        <div class="chart-wrap"><canvas id="chart-faculty"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h2>Rating distribution</h2>
+        <div class="chart-wrap"><canvas id="chart-rating"></canvas></div>
+      </div>
+    </section>
+
+    <section class="table-card" aria-label="Recent submissions">
+      <h2>Recent submissions</h2>
+      <table>
+        <thead>
+          <tr>
+            <th data-col="date">Date <span class="sort-arrow">↕</span></th>
+            <th data-col="subject">Subject <span class="sort-arrow">↕</span></th>
+            <th data-col="faculty">Faculty <span class="sort-arrow">↕</span></th>
+            <th data-col="campus">Campus <span class="sort-arrow">↕</span></th>
+            <th data-col="wordCount">Word count <span class="sort-arrow">↕</span></th>
+            <th data-col="avgScore">Avg score <span class="sort-arrow">↕</span></th>
+            <th data-col="rating">Rating <span class="sort-arrow">↕</span></th>
+            <th data-col="status">Status <span class="sort-arrow">↕</span></th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </section>
+  </div>
+
+  <script>
+    const SEED = 42;
+    const RECORD_COUNT = 80;
+    const ACCENT = "#0d9488";
+    const ACCENT_LIGHT = "rgba(13, 148, 136, 0.15)";
+
+    const SCORE_KEYS = [
+      "spelling_and_grammar_average_score",
+      "choice_of_language_average_score",
+      "structure_average_score",
+      "use_of_sources_average_score",
+      "critical_thinking_average_score",
+    ];
+
+    const SCORE_LABELS = [
+      "Spelling & grammar",
+      "Choice of language",
+      "Structure",
+      "Use of sources",
+      "Critical thinking",
+    ];
+
+    const CAMPUSES = ["Sydney", "Melbourne", "Brisbane", "Online"];
+    const FACULTIES = [
+      "Faculty of Business",
+      "Faculty of Science",
+      "Faculty of Arts",
+      "Faculty of Health",
+      "Faculty of Engineering",
+    ];
+    const SUBJECTS = ["Essay", "Report", "Reflection", "Case study", "Literature review"];
+    const YEAR_LEVELS = [
+      "1st Year Undergraduate",
+      "2nd Year Undergraduate",
+      "3rd Year Undergraduate",
+      "Postgraduate",
+    ];
+    const STATUSES = ["reviewed", "submitted", "cancelled"];
+    const FIRST_NAMES = [
+      "Alex", "Jordan", "Sam", "Taylor", "Casey", "Morgan", "Riley", "Jamie",
+      "Quinn", "Avery", "Blake", "Drew", "Hayden", "Logan", "Parker",
+    ];
+    const LAST_NAMES = [
+      "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller",
+      "Davis", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson",
+    ];
+    const COURSES = [
+      "Introduction to Business",
+      "Academic Writing",
+      "Research Methods",
+      "Data Analytics",
+      "Professional Communication",
+      "Critical Thinking",
+    ];
+
+    let rngState = SEED;
+
+    function seededRandom() {
+      rngState = (rngState * 1664525 + 1013904223) & 0xffffffff;
+      return (rngState >>> 0) / 0xffffffff;
+    }
+
+    function pick(arr) {
+      return arr[Math.floor(seededRandom() * arr.length)];
+    }
+
+    function uuid() {
+      const hex = () => Math.floor(seededRandom() * 16).toString(16);
+      return `${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}-${hex()}${hex()}${hex()}${hex()}-4${hex()}${hex()}${hex()}-${hex()}${hex()}${hex()}${hex()}-${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}`;
+    }
+
+    function getDayLabels() {
+      const labels = [];
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        labels.push(d.toISOString().slice(0, 10));
+      }
+      return labels;
+    }
+
+    function generateInteractions() {
+      const dayLabels = getDayLabels();
+      const records = [];
+
+      for (let i = 0; i < RECORD_COUNT; i++) {
+        const day = pick(dayLabels);
+        const hour = Math.floor(seededRandom() * 14) + 7;
+        const minute = Math.floor(seededRandom() * 60);
+        const startTime = new Date(`${day}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00.000Z`);
+
+        const statusRoll = seededRandom();
+        const status = statusRoll < 0.7 ? "reviewed" : statusRoll < 0.9 ? "submitted" : "cancelled";
+        const hasRating = status === "reviewed" && seededRandom() > 0.15;
+        const rating = hasRating ? Math.ceil(seededRandom() * 5) : null;
+        const isEarlyIntervention = seededRandom() < 0.08;
+
+        const scores = {};
+        for (const key of SCORE_KEYS) {
+          scores[key] = Math.round((2.5 + seededRandom() * 2.5) * 10) / 10;
+        }
+
+        const firstName = pick(FIRST_NAMES);
+        const lastName = pick(LAST_NAMES);
+
+        records.push({
+          uuid: uuid(),
+          start_time: startTime.toISOString(),
+          service: "WF+",
+          subject: pick(SUBJECTS),
+          year_level: pick(YEAR_LEVELS),
+          minutes: Math.floor(seededRandom() * 35) + 10,
+          first_name: firstName,
+          last_name: lastName,
+          email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
+          student_question: "Could you please help me improve this draft?",
+          external_user_id: String(100000 + i),
+          study_mode: seededRandom() > 0.3 ? "Campus" : "Online",
+          study_type: seededRandom() > 0.25 ? "Full time" : "Part time",
+          faculty: pick(FACULTIES),
+          campus: pick(CAMPUSES),
+          additional_parameters: {
+            course_id: String(1000 + Math.floor(seededRandom() * 50)),
+            course_name: pick(COURSES),
+          },
+          feedback: hasRating && rating >= 4 ? "Very helpful, thank you!" : null,
+          studiosity_student_id: 200000 + i,
+          rating,
+          early_intervention: isEarlyIntervention ? "true" : "false",
+          early_intervention_reason: isEarlyIntervention ? "Multiple low scores on recent submissions" : null,
+          submission_details: {
+            status,
+            word_count: Math.floor(seededRandom() * 1800) + 300,
+            ...scores,
+            action_type: status === "cancelled" ? "student_cancelled" : null,
+          },
+        });
+      }
+
+      return records.sort((a, b) => new Date(b.start_time) - new Date(a.start_time));
+    }
+
+    function avgScore(record) {
+      const sd = record.submission_details;
+      const sum = SCORE_KEYS.reduce((acc, key) => acc + (sd[key] || 0), 0);
+      return sum / SCORE_KEYS.length;
+    }
+
+    function formatDate(iso) {
+      return new Date(iso).toLocaleDateString("en-AU", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    }
+
+    function studentLabel(record) {
+      return `${record.first_name} ${record.last_name.charAt(0)}.`;
+    }
+
+    const allInteractions = generateInteractions();
+    const dayLabels = getDayLabels();
+
+    let sortCol = "date";
+    let sortDir = "desc";
+
+    const charts = {};
+
+    function getFilters() {
+      return {
+        dateFrom: document.getElementById("filter-date-from").value,
+        dateTo: document.getElementById("filter-date-to").value,
+        campus: document.getElementById("filter-campus").value,
+        faculty: document.getElementById("filter-faculty").value,
+        subject: document.getElementById("filter-subject").value,
+      };
+    }
+
+    function countActiveFilters(filters) {
+      let count = 0;
+      if (filters.dateFrom !== dayLabels[0]) count++;
+      if (filters.dateTo !== dayLabels[dayLabels.length - 1]) count++;
+      if (filters.campus) count++;
+      if (filters.faculty) count++;
+      if (filters.subject) count++;
+      return count;
+    }
+
+    function filterInteractions(filters) {
+      return allInteractions.filter((r) => {
+        const day = r.start_time.slice(0, 10);
+        if (filters.dateFrom && day < filters.dateFrom) return false;
+        if (filters.dateTo && day > filters.dateTo) return false;
+        if (filters.campus && r.campus !== filters.campus) return false;
+        if (filters.faculty && r.faculty !== filters.faculty) return false;
+        if (filters.subject && r.subject !== filters.subject) return false;
+        return true;
+      });
+    }
+
+    function computeKpis(records) {
+      const total = records.length;
+      const rated = records.filter((r) => r.rating != null);
+      const avgRating = rated.length
+        ? rated.reduce((s, r) => s + r.rating, 0) / rated.length
+        : null;
+      const avgWords = total
+        ? records.reduce((s, r) => s + r.submission_details.word_count, 0) / total
+        : null;
+      const avgQuality = total
+        ? records.reduce((s, r) => s + avgScore(r), 0) / total
+        : null;
+
+      return { total, avgRating, avgWords, avgQuality, ratedCount: rated.length };
+    }
+
+    function buildTimeChartData(records) {
+      const counts = {};
+      for (const day of dayLabels) counts[day] = 0;
+      for (const r of records) {
+        const day = r.start_time.slice(0, 10);
+        if (counts[day] !== undefined) counts[day]++;
+      }
+      return {
+        labels: dayLabels.map((d) => {
+          const dt = new Date(d + "T00:00:00");
+          return dt.toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short" });
+        }),
+        data: dayLabels.map((d) => counts[d]),
+      };
+    }
+
+    function buildQualityChartData(records) {
+      if (!records.length) return { labels: SCORE_LABELS, data: SCORE_KEYS.map(() => 0) };
+      return {
+        labels: SCORE_LABELS,
+        data: SCORE_KEYS.map((key) => {
+          const sum = records.reduce((s, r) => s + r.submission_details[key], 0);
+          return Math.round((sum / records.length) * 10) / 10;
+        }),
+      };
+    }
+
+    function buildFacultyChartData(records) {
+      const counts = {};
+      for (const f of FACULTIES) counts[f] = 0;
+      for (const r of records) counts[r.faculty] = (counts[r.faculty] || 0) + 1;
+      const entries = Object.entries(counts).filter(([, v]) => v > 0);
+      return {
+        labels: entries.map(([k]) => k.replace("Faculty of ", "")),
+        data: entries.map(([, v]) => v),
+      };
+    }
+
+    function buildRatingChartData(records) {
+      const counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+      for (const r of records) {
+        if (r.rating != null) counts[r.rating]++;
+      }
+      return {
+        labels: ["1 star", "2 stars", "3 stars", "4 stars", "5 stars"],
+        data: [counts[1], counts[2], counts[3], counts[4], counts[5]],
+      };
+    }
+
+    function updateKpis(kpis) {
+      document.getElementById("kpi-total").textContent = kpis.total.toLocaleString();
+      document.getElementById("kpi-rating").textContent =
+        kpis.avgRating != null ? kpis.avgRating.toFixed(1) : "—";
+      document.getElementById("kpi-rating-sub").textContent =
+        kpis.ratedCount > 0 ? `From ${kpis.ratedCount} rated submissions` : "No ratings yet";
+      document.getElementById("kpi-words").textContent =
+        kpis.avgWords != null ? Math.round(kpis.avgWords).toLocaleString() : "—";
+      document.getElementById("kpi-quality").textContent =
+        kpis.avgQuality != null ? kpis.avgQuality.toFixed(1) : "—";
+    }
+
+    function updateFilterCount(filtered, filters) {
+      const active = countActiveFilters(filters);
+      const suffix = active > 0 ? ` · ${active} filter${active > 1 ? "s" : ""} active` : "";
+      document.getElementById("filter-count").textContent =
+        `Showing ${filtered.length} of ${allInteractions.length} submissions${suffix}`;
+    }
+
+    function updateCharts(records) {
+      const time = buildTimeChartData(records);
+      charts.time.data.labels = time.labels;
+      charts.time.data.datasets[0].data = time.data;
+      charts.time.update();
+
+      const quality = buildQualityChartData(records);
+      charts.quality.data.labels = quality.labels;
+      charts.quality.data.datasets[0].data = quality.data;
+      charts.quality.update();
+
+      const faculty = buildFacultyChartData(records);
+      charts.faculty.data.labels = faculty.labels;
+      charts.faculty.data.datasets[0].data = faculty.data;
+      charts.faculty.update();
+
+      const rating = buildRatingChartData(records);
+      charts.rating.data.datasets[0].data = rating.data;
+      charts.rating.update();
+    }
+
+    function getTableRows(records) {
+      return records.map((r) => ({
+        date: r.start_time,
+        subject: r.subject,
+        faculty: r.faculty.replace("Faculty of ", ""),
+        campus: r.campus,
+        wordCount: r.submission_details.word_count,
+        avgScore: avgScore(r),
+        rating: r.rating,
+        status: r.submission_details.status,
+        student: studentLabel(r),
+      }));
+    }
+
+    function sortRows(rows) {
+      const sorted = [...rows];
+      sorted.sort((a, b) => {
+        let av = a[sortCol];
+        let bv = b[sortCol];
+        if (sortCol === "date") {
+          av = new Date(av).getTime();
+          bv = new Date(bv).getTime();
+        }
+        if (av == null && bv == null) return 0;
+        if (av == null) return 1;
+        if (bv == null) return -1;
+        if (typeof av === "string") return sortDir === "asc" ? av.localeCompare(bv) : bv.localeCompare(av);
+        return sortDir === "asc" ? av - bv : bv - av;
+      });
+      return sorted;
+    }
+
+    function statusBadge(status) {
+      const cls = `status-${status}`;
+      return `<span class="status-badge ${cls}">${status}</span>`;
+    }
+
+    function updateTable(records) {
+      const rows = sortRows(getTableRows(records)).slice(0, 15);
+      const tbody = document.getElementById("table-body");
+      tbody.innerHTML = rows
+        .map(
+          (r) => `<tr>
+            <td>${formatDate(r.date)}</td>
+            <td>${r.subject}</td>
+            <td>${r.faculty}</td>
+            <td>${r.campus}</td>
+            <td>${r.wordCount.toLocaleString()}</td>
+            <td>${r.avgScore.toFixed(1)}</td>
+            <td>${r.rating != null ? r.rating + " ★" : "—"}</td>
+            <td>${statusBadge(r.status)}</td>
+          </tr>`
+        )
+        .join("");
+
+      document.querySelectorAll("thead th").forEach((th) => {
+        th.classList.toggle("sorted", th.dataset.col === sortCol);
+        const arrow = th.querySelector(".sort-arrow");
+        if (th.dataset.col === sortCol) {
+          arrow.textContent = sortDir === "asc" ? "↑" : "↓";
+        } else {
+          arrow.textContent = "↕";
+        }
+      });
+    }
+
+    function refreshDashboard() {
+      const filters = getFilters();
+      const filtered = filterInteractions(filters);
+      updateFilterCount(filtered, filters);
+      updateKpis(computeKpis(filtered));
+      updateCharts(filtered);
+      updateTable(filtered);
+    }
+
+    function populateFilterOptions() {
+      const dateFrom = document.getElementById("filter-date-from");
+      const dateTo = document.getElementById("filter-date-to");
+      for (const day of dayLabels) {
+        const label = new Date(day + "T00:00:00").toLocaleDateString("en-AU", {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+        });
+        dateFrom.innerHTML += `<option value="${day}">${label}</option>`;
+        dateTo.innerHTML += `<option value="${day}">${label}</option>`;
+      }
+      dateFrom.value = dayLabels[0];
+      dateTo.value = dayLabels[dayLabels.length - 1];
+
+      const campusEl = document.getElementById("filter-campus");
+      for (const c of CAMPUSES) {
+        campusEl.innerHTML += `<option value="${c}">${c}</option>`;
+      }
+
+      const facultyEl = document.getElementById("filter-faculty");
+      for (const f of FACULTIES) {
+        facultyEl.innerHTML += `<option value="${f}">${f.replace("Faculty of ", "")}</option>`;
+      }
+
+      const subjectEl = document.getElementById("filter-subject");
+      for (const s of SUBJECTS) {
+        subjectEl.innerHTML += `<option value="${s}">${s}</option>`;
+      }
+    }
+
+    function initCharts() {
+      const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+      };
+
+      charts.time = new Chart(document.getElementById("chart-time"), {
+        type: "bar",
+        data: {
+          labels: [],
+          datasets: [{
+            data: [],
+            backgroundColor: ACCENT,
+            borderRadius: 4,
+          }],
+        },
+        options: {
+          ...commonOptions,
+          scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } },
+            x: { grid: { display: false } },
+          },
+        },
+      });
+
+      charts.quality = new Chart(document.getElementById("chart-quality"), {
+        type: "bar",
+        data: {
+          labels: [],
+          datasets: [{
+            data: [],
+            backgroundColor: ACCENT,
+            borderRadius: 4,
+          }],
+        },
+        options: {
+          ...commonOptions,
+          indexAxis: "y",
+          scales: {
+            x: { beginAtZero: true, max: 5, ticks: { stepSize: 1 } },
+            y: { grid: { display: false } },
+          },
+        },
+      });
+
+      charts.faculty = new Chart(document.getElementById("chart-faculty"), {
+        type: "doughnut",
+        data: {
+          labels: [],
+          datasets: [{
+            data: [],
+            backgroundColor: [
+              "#0d9488", "#14b8a6", "#2dd4bf", "#5eead4", "#99f6e4", "#ccfbf1",
+            ],
+            borderWidth: 0,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: "right", labels: { boxWidth: 12, font: { size: 11 } } },
+          },
+        },
+      });
+
+      charts.rating = new Chart(document.getElementById("chart-rating"), {
+        type: "bar",
+        data: {
+          labels: ["1 star", "2 stars", "3 stars", "4 stars", "5 stars"],
+          datasets: [{
+            data: [],
+            backgroundColor: ACCENT_LIGHT,
+            borderColor: ACCENT,
+            borderWidth: 1,
+            borderRadius: 4,
+          }],
+        },
+        options: {
+          ...commonOptions,
+          scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } },
+            x: { grid: { display: false } },
+          },
+        },
+      });
+    }
+
+    function bindEvents() {
+      ["filter-date-from", "filter-date-to", "filter-campus", "filter-faculty", "filter-subject"].forEach(
+        (id) => {
+          document.getElementById(id).addEventListener("change", refreshDashboard);
+        }
+      );
+
+      document.getElementById("reset-filters").addEventListener("click", (e) => {
+        e.preventDefault();
+        document.getElementById("filter-date-from").value = dayLabels[0];
+        document.getElementById("filter-date-to").value = dayLabels[dayLabels.length - 1];
+        document.getElementById("filter-campus").value = "";
+        document.getElementById("filter-faculty").value = "";
+        document.getElementById("filter-subject").value = "";
+        refreshDashboard();
+      });
+
+      document.querySelectorAll("thead th[data-col]").forEach((th) => {
+        th.addEventListener("click", () => {
+          const col = th.dataset.col;
+          if (sortCol === col) {
+            sortDir = sortDir === "asc" ? "desc" : "asc";
+          } else {
+            sortCol = col;
+            sortDir = col === "date" ? "desc" : "asc";
+          }
+          refreshDashboard();
+        });
+      });
+    }
+
+    populateFilterOptions();
+    initCharts();
+    bindEvents();
+    refreshDashboard();
+  </script>
+</body>
+</html>
